@@ -68,6 +68,13 @@ var i,
 		return -1;
 	},
 
+	// Set innerHTML through a Trusted Type policy.
+	tt = "TrustedTypes" in window ? window.TrustedTypes : { createPolicy: function(name, rules) { return rules; } },
+	internal_only_tt_policy = tt.createPolicy("jssizzle-internal", { createHTML: function(i) { return i; } }, false),
+	setInnerHTML = function(el, html) {
+		el.innerHTML = internal_only_tt_policy.createHTML(html);
+	},
+
 	booleans = "checked|selected|async|autofocus|autoplay|controls|defer|disabled|hidden|ismap|loop|multiple|open|readonly|required|scoped",
 
 	// Regular expressions
@@ -753,9 +760,9 @@ setDocument = Sizzle.setDocument = function( node ) {
 			// setting a boolean content attribute,
 			// since its presence should be enough
 			// https://bugs.jquery.com/ticket/12359
-			docElem.appendChild( el ).innerHTML = "<a id='" + expando + "'></a>" +
+			setInnerHTML(docElem.appendChild( el ), "<a id='" + expando + "'></a>" +
 				"<select id='" + expando + "-\r\\' msallowcapture=''>" +
-				"<option selected=''></option></select>";
+				"<option selected=''></option></select>");
 
 			// Support: IE8, Opera 11-12.16
 			// Nothing should be selected when empty strings follow ^= or $= or *=
@@ -792,8 +799,8 @@ setDocument = Sizzle.setDocument = function( node ) {
 		});
 
 		assert(function( el ) {
-			el.innerHTML = "<a href='' disabled='disabled'></a>" +
-				"<select disabled='disabled'><option/></select>";
+			setInnerHTML(el, "<a href='' disabled='disabled'></a>" +
+				"<select disabled='disabled'><option/></select>");
 
 			// Support: Windows 8 Native Apps
 			// The type and name attributes are restricted during .innerHTML assignment
@@ -2218,7 +2225,7 @@ support.sortDetached = assert(function( el ) {
 // Prevent attribute/property "interpolation"
 // https://msdn.microsoft.com/en-us/library/ms536429%28VS.85%29.aspx
 if ( !assert(function( el ) {
-	el.innerHTML = "<a href='#'></a>";
+	setInnerHTML(el, "<a href='#'></a>");
 	return el.firstChild.getAttribute("href") === "#" ;
 }) ) {
 	addHandle( "type|href|height|width", function( elem, name, isXML ) {
@@ -2231,7 +2238,7 @@ if ( !assert(function( el ) {
 // Support: IE<9
 // Use defaultValue in place of getAttribute("value")
 if ( !support.attributes || !assert(function( el ) {
-	el.innerHTML = "<input/>";
+	setInnerHTML(el, "<input/>");
 	el.firstChild.setAttribute( "value", "" );
 	return el.firstChild.getAttribute( "value" ) === "";
 }) ) {
